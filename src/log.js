@@ -51,8 +51,12 @@ function parse(line) {
 }
 
 function readLog(file, reader=fs) {
+  if (file === '-') {
+    file = "/dev/stdin";
+  }
   const contents = reader.readFileSync(file).toString();
   const lines = _.compact(contents.split('\n').filter(line => line).map(parse));
+  console.log("Read %d lines", lines.length);
 
   return lines.map(line => {
     const result = _.pick(line, ['timestamp', 'level', 'message']);

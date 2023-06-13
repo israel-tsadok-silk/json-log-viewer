@@ -2,21 +2,31 @@
 const minimist = require('minimist');
 const blessed = require('blessed');
 const _ = require('lodash');
+const fs = require('fs');
+const tty = require('tty');
+
 require('./polyfills');
+const ttyFd = fs.openSync('/dev/tty', 'r+')
 
 const MainPanel = require('./widgets/MainPanel');
 const StatusLine = require('./widgets/StatusLine');
 
 const opts = minimist(process.argv.slice(2));
-const logFile = opts._[0];
+var logFile = opts._[0];
 
 if (!logFile) {
-  // eslint-disable-next-line no-console
-  console.log('error: missing log file');
-  process.exit(1);
+  if (process.stdin.isTTY) {
+    // eslint-disable-next-line no-console
+    console.log('error: missing log file');
+    process.exit(1);
+  } else {
+    logFile = '-';
+  }
 }
 
 const screen = blessed.screen({
+  input: tty.ReadStream(ttyFd),
+  output: tty.WriteStream(ttyFd),
   smartCSR: true,
   log: opts.log,
 });
